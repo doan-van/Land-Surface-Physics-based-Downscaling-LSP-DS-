@@ -490,8 +490,8 @@ def copyprog(hrldas_prog, rdir):
     hrldas_prog : link to compile hrldas program
     rdir : link to run directory
     '''
-    os.system('cp '+hrldas_prog+'/run/hrldas.exe '+hrldas_prog+'/run/*.TBL  '+rdir)
-    os.system('cp '+hrldas_prog+'/run/examples/GLDAS/namelist.hrldas.GLDAS '+ rdir + '/namelist.hrldas')
+    os.system('cp '+hrldas_prog+'/hrldas.exe '+hrldas_prog+'/*.TBL  '+rdir)
+    os.system('cp '+hrldas_prog+'/examples/GLDAS/namelist.hrldas.GLDAS '+ rdir + '/namelist.hrldas')
 
 
 def writenamelist(namelist_link, sdate, edate, hidir,hodir1, rdir, update, dom='1'):
@@ -637,6 +637,7 @@ def extract_hrldas(geo_em_file, hidir, hodir1, exdir1, sdate, edate, varnames = 
     from metpy.calc import relative_humidity_from_mixing_ratio
     from metpy.units import units
     
+    
     for date in pd.date_range(sdate,edate, freq='H')[:]:
         
         try:
@@ -709,30 +710,20 @@ def mdir(odir):
 if __name__ == "__main__":
 # global path:
     
-    era_link = '../download_era5/era5_hrldas/dbsh/'
-    hrldas_prog = '/mnt/work/working/HRLDAS/uHRLDAS/hrldas/'
-    hrldas_prog = '/Users/doan/working/HRLDAS/20240509/hrldas/hrldas/'
+    era_link = 'download_era5/era5_hrldas/dbsh/'
+    hrldas_prog = 'hrldas_prog/'
 
-    #hrldas_prog = '/Users/doan/Documents/GitHub/imhen_agri_dbsh/run_hrldas/hrldas_github/hrldas/hrldas/'
-
-    sdate, edate = '2013-01-01', '2013-01-01 05:00:00'
+    sdate, edate = '2013-01-01', '2013-01-05 01:00:00'
     geo_em_file = 'geo_em.d03.nc'
     
-    odir00 = 'dataout_cordex/'
+    odir00 = 'output/'
     
-    rdir0  = odir00 + '/era5/'
-    #schemes = {'set1':{'dynamic_veg_option': '2', 'crop_option':'1'},
-    #            'set2':{'dynamic_veg_option': '1', 'crop_option':'1'},
-    #            'set3':{'dynamic_veg_option': '4', 'crop_option':'1'},
-    #            'set4':{'dynamic_veg_option': '2', 'crop_option':'0'}}
+    rdir0  = odir00 
     
-    schemes = {}
-    for idyn in range(1, 10):
-        print(idyn)
-        schemes['set'+str(idyn)] = { 'dynamic_veg_option': str(idyn)} 
 
 
     gxdir, stdir, hidir, hodir, exdir = [ mdir(rdir0 + a + '/') for a in ['geo_em', 'setup', 'datain', 'dataout', 'extract']]
+
 
     if 1:    
         extract_geo_em(geo_em_file, gxdir)
@@ -741,38 +732,30 @@ if __name__ == "__main__":
         bdcon(era_link, gxdir, sdate, edate, hidir, dom='3')
             
     
-        for iss, sset  in enumerate(list(schemes.keys())[:1]):
                 
-            print(sset)     
-            rdir = mdir(hodir+'/'+sset) 
-            hodir1 = mdir(hodir+'/'+sset+'/dataout/') 
-            exdir1 = mdir(exdir+'/'+sset) 
-                        
-            update = schemes[sset]
-            namelist_link = hrldas_prog+'/run/examples/GLDAS/namelist.hrldas.GLDAS'
-            
-            update['khour'] = '5'
-            update['kday'] = '0'
-            
-            copyprog(hrldas_prog, rdir )
-            ll = writenamelist(namelist_link, sdate, edate, hidir, hodir1, rdir, update, dom='3')       
-            os.system('source /home/doan/env_wrf.sh ; cd  '+rdir+'; ./hrldas.exe; cd -')    
-            
-            varnames = ['TEMP', 'RH'][:]
-            extract_hrldas(geo_em_file, hidir, hodir1, exdir1, sdate, edate, varnames, dom='3' )
+        rdir = mdir(hodir+'/') 
+        hodir1 = mdir(hodir+'/dataout/') 
+        exdir1 = mdir(exdir+'/') 
+                    
+        update = {}
+        namelist_link = hrldas_prog+'/examples/GLDAS/namelist.hrldas.GLDAS'
         
-    if 0:
-        xx = []
-        for iss, sset  in enumerate(list(schemes.keys())[:]):
-                
-            print(sset)     
-            rdir = hodir+'/'+sset 
-            hodir1 = hodir+'/'+sset+'/dataout/'
-            exdir1 = exdir+'/'+sset 
-                                
-            f = exdir1 + '/TEMP/2013010105.LDASOUT_DOMAIN3.nc'
-            x = xr.open_dataset(f).TEMP[0]
-            xx.append(x)
+        #update['khour'] = '0'
+        #update['kday'] = '4'
+        
+        update['kday'] = str((pd.to_datetime(edate) - pd.to_datetime(sdate)).days)
+        
+        
+        copyprog(hrldas_prog, rdir )
+        ll = writenamelist(namelist_link, sdate, edate, hidir, hodir1, rdir, update, dom='3')       
+        os.system(' cd  '+rdir+'; ./hrldas.exe; cd -')    
+
+        
+        varnames = ['TEMP'][:]
+        extract_hrldas(geo_em_file, hidir, hodir1, exdir1, sdate, edate, varnames, dom='3' )
+    
+    
+        
             
             
             
