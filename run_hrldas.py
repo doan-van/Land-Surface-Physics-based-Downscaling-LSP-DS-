@@ -9,10 +9,8 @@ import glob, sys, os
 import numpy as np
 import pandas as pd
 import xarray as xr
-import metpy.calc as mpcalc
-from metpy.units import units
 import  mpl_toolkits.basemap  
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 #=====
 
 
@@ -722,7 +720,7 @@ if __name__ == "__main__":
     gxdir, stdir, hidir, hodir, exdir = [ mdir(rdir0 + a + '/') for a in ['geo_em', 'setup', 'datain', 'dataout', 'extract']]
 
     # setup run
-    sdate, edate = '2013-01-01', '2013-01-05 01:00:00' # 
+    sdate, edate = '2013-01-01', '2013-01-03 01:00:00' # 
     
 
     if 1:    

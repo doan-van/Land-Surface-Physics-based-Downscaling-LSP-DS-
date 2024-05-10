@@ -8,18 +8,21 @@ https://codes.ecmwf.int/grib/param-db/
 """
 
 
-import numpy as np
+#import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import os, sys, glob
 from collections import namedtuple
-import xarray as xr
-import mpl_toolkits.basemap
+#import xarray as xr
+#import mpl_toolkits.basemap
+#===========================
 
-dates = pd.date_range('2009-01-01','2023-02-01', freq='MS')
-dates = pd.date_range('2020-07-01','2023-02-01', freq='MS')
 
-#dates = pd.date_range('2012-12-01','2014-02-01', freq='MS')[:]
+
+#dates = pd.date_range('2009-01-01','2023-02-01', freq='MS')
+#dates = pd.date_range('2020-07-01','2023-02-01', freq='MS')
+
+dates = pd.date_range('2012-12-01','2013-02-01', freq='MS')[:]
 
 #==================================================================:::
 # This script is to download ERA5 data used for HRLDAS downscaling :::
@@ -36,14 +39,15 @@ if 1: # download era5
     #area = '90/-180/-90/180' # NWSE
     #odir0 = '/media/doan/Backup_disk/share_DATA/era5_hrldas/' +dom
     
-    #dom = 'dbsh'
-    #area = '25/98/17/110' # NWSE
-    #odir0 = 'era5_hrldas/' +dom
+    dom = 'dbsh'
+    area = '25/98/17/110' # NWSE
+    odir0 = 'era5_hrldas/' +dom
     
     
-    dom = 'asia'
-    area = '46/90/-15/150' # NWSE
-    odir0 = '/media/doan/Backup_disk/share_DATA/era5_hrldas/' +dom
+    #dom = 'asia'
+    #area = '46/90/-15/150' # NWSE
+    #odir0 = '/media/doan/Backup_disk/share_DATA/era5_hrldas/' +dom
+    
     
     by = '1' # each hour
     n = 0
