@@ -28,13 +28,7 @@ import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 
 
-import xarray as xr
 import numpy as np
-import glob, os, sys
-from matplotlib.patches import Circle, Wedge, Polygon
-from matplotlib.collections import PatchCollection
-import matplotlib.pyplot as plt
-import cartopy.crs as ccrs
 import pandas as pd
 from matplotlib import gridspec
 from matplotlib.colors import BoundaryNorm
@@ -146,68 +140,75 @@ def scale_bar(ax, proj, length, location=(0.5, 0.05), linewidth=3,
 geo = xr.open_dataset('geo_em.d03.nc')
 lon, lat = geo.XLONG_M[0].values,geo.XLAT_M[0].values
 
-ifiles = sorted(glob.glob('dataout/extract/TEMP/*.nc'))
-for f in ifiles[:-1][-1:]:
+ifiles = sorted(glob.glob('output/extract/TEMP/*.nc'))
+for f in ifiles[-24:]:
     d = xr.open_dataset(f).TEMP
     #d.plot()
                 
+    time = f.split('/')[-1].split('.')[0]
     temp = d[0] 
     
     
-fig   =  plt.figure(figsize=(8,8))
-ax  = plt.axes([.1,.1,0.8,0.3], projection=ccrs.PlateCarree())
+    fig   =  plt.figure(figsize=(6,6))
+    ax  = plt.axes([.05,.05,0.8,0.8], projection=ccrs.PlateCarree())
+        
+    b = [0,0,.0,0]
+    extent = (lon.min()+b[0],lon.max()+b[1],lat.min()+b[2],lat.max()+b[3])  
+        
+    ax.set_extent( extent )
     
-b = [0,0,.0,0]
-extent = (lon.min()+b[0],lon.max()+b[1],lat.min()+b[2],lat.max()+b[3])  
-    
-ax.set_extent( extent )
-#ax.coastlines('10m', linewidth=1.,color='gray')
-    
-    
-clevs = np.arange(1,13,.1)
-#clevs = np.linspace(temp.quantile(.0),temp.quantile(1)+.5, 100)
-
-arg = {'color':'white', 'lw':1}
-tit = 'Urban fraction (-)'
-
-#cmap = plt.get_cmap('coolwarm')
-cmap = plt.get_cmap('jet')
+    ax.text(.0,1.01,time, fontsize=12, transform=ax.transAxes)
     
     
-norm = BoundaryNorm(clevs, cmap.N, clip=True)
-ax.pcolormesh(lon,lat,temp,norm = norm,cmap= cmap, transform=ccrs.PlateCarree()) #, extend='both')
-
-#ax.contourf(lon,lat,z,levels = clevs,norm = norm,cmap= cmap, transform=ccrs.PlateCarree()) #, extend='both')
-#ax.coastlines()
-
-ax.text(1,1.01,'', fontsize=15, fontweight = 'bold',
-        ha='right', 
-        transform=ax.transAxes)
-#add_grid(ax, .25 )
-scale_bar(ax, ccrs.PlateCarree(), 100) 
-plt.axis('off') 
-   
+    #ax.coastlines('10m', linewidth=1.,color='gray')
+        
+        
+    clevs = np.arange(5,20,.4)
+    #clevs = np.linspace(temp.quantile(.0),temp.quantile(1)+.5, 100)
     
+    arg = {'color':'white', 'lw':1}
+    tit = 'Urban fraction (-)'
     
-cbc = 'k'
-axc = plt.axes([.1,.18,0.005,0.1])
-#axc.set_facecolor("yellow")
-
-cb = mpl.colorbar.ColorbarBase(axc, 
-                               cmap=cmap, 
-                               norm = norm, 
-                               #orientation='horizontal'
-                               orientation = 'vertical',
-                               format = '%.0f'
-                               ) #, extend = 'both',)
-
-cb.ax.tick_params(labelsize=6, color=cbc)
-
-cb.ax.locator_params(nbins=5)
-cb.set_label(label='Temp. $\mathrm{^oC}$', fontsize=7)  
-#cb.set_label(label=tit, fontsize=10, color=cbc)  
-plt.setp(plt.getp(cb.ax.axes, 'yticklabels'), color=cbc)
-plt.setp([cb.ax.get_xticklines(), cb.ax.get_yticklines()], color=cbc)
-
+    #cmap = plt.get_cmap('coolwarm')
+    cmap = plt.get_cmap('jet')
+        
+        
+    norm = BoundaryNorm(clevs, cmap.N, clip=True)
+    ax.pcolormesh(lon,lat,temp,norm = norm,cmap= cmap, transform=ccrs.PlateCarree()) #, extend='both')
     
+    #ax.contourf(lon,lat,z,levels = clevs,norm = norm,cmap= cmap, transform=ccrs.PlateCarree()) #, extend='both')
+    #ax.coastlines()
+    
+    ax.text(1,1.01,'', fontsize=15, fontweight = 'bold',
+            ha='right', 
+            transform=ax.transAxes)
+    #add_grid(ax, .25 )
+    #scale_bar(ax, ccrs.PlateCarree(), 100) 
+    #plt.axis('off') 
+       
+        
+        
+    cbc = 'k'
+    axc = plt.axes([.6,.25,0.2,0.015])
+    #axc.set_facecolor("yellow")
+    
+    cb = mpl.colorbar.ColorbarBase(axc, 
+                                   cmap=cmap, 
+                                   norm = norm, 
+                                   orientation='horizontal',
+                                   #orientation = 'vertical',
+                                   format = '%.0f'
+                                   ) #, extend = 'both',)
+    
+    cb.ax.tick_params(labelsize=8, color=cbc)
+    
+    cb.ax.locator_params(nbins=3)
+    cb.set_label(label='Temp. $\mathrm{^oC}$', fontsize=10)  
+    #cb.set_label(label=tit, fontsize=10, color=cbc)  
+    plt.setp(plt.getp(cb.ax.axes, 'yticklabels'), color=cbc)
+    plt.setp([cb.ax.get_xticklines(), cb.ax.get_yticklines()], color=cbc)
+    
+    add_grid(ax,1.,fontsize = 10)
+        
+    plt.savefig('fig/'+time+'.png',dpi=150)
     
