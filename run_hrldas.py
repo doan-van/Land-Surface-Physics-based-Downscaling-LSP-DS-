@@ -636,21 +636,21 @@ def extract_hrldas(geo_em_file, hidir, hodir1, exdir1, sdate, edate, varnames = 
     from metpy.units import units
     
     
-    for date in pd.date_range(sdate,edate, freq='H')[:]:
-        
+    
+    ifiles = sorted(glob.glob( hodir1+'/*.LDASOUT_DOMAIN'+dom))
+    
+    #for date in pd.date_range(sdate,edate, freq='H')[:-1]:
+    for if2 in ifiles[:]:   
         try:
         
-            time = date #- pd.Timedelta('7 hours')
-            print(time) 
-    
-            #if1 = hidir+"/"+time.strftime('%Y%m%d%H')+'.LDASIN_DOMAIN'+dom
-            if2 = hodir1+"/"+time.strftime('%Y%m%d%H')+'.LDASOUT_DOMAIN'+dom
-            print(if2)
-            #di = xr.open_dataset(if1), 
             ds = xr.open_dataset(if2)
+            
             urbscheme = 'TH2_URB2D' in list(ds.variables.keys())
+            
             if urbscheme: print('        urban scheme is used')
-            for var in varnames[:]:
+            
+            
+            for var in varnames[:1]:
                 
                 do = xr.Dataset()
                 if var in ['TEMP', 'RH']:
@@ -665,10 +665,13 @@ def extract_hrldas(geo_em_file, hidir, hodir1, exdir1, sdate, edate, varnames = 
                         temp = np.where(isurban,x3, x1)
                         print('        urban scheme is used')
                     else:
+                        
                         temp = x1.values
-                    
+                        
+                     
                     if var == 'TEMP': 
                         do[var] =  ( ('Time',  'south_north', 'west_east'), temp )
+                    
                     
                     if var == 'RH':
                         m1 = ds['Q2MV']*ds['FVEG']+ds['Q2MB']*(1-ds['FVEG'])
@@ -684,10 +687,13 @@ def extract_hrldas(geo_em_file, hidir, hodir1, exdir1, sdate, edate, varnames = 
                     
                 exdir2 = mdir(exdir1 + '/' + var + '/')
                 ofile = exdir2 + os.path.basename(if2) + '.nc'
-                print('    ', ofile)
                 do.to_netcdf(ofile)
+            #print('finish extract data -> ', exdir2)
         except:
-            print('something wring')
+            print('something wrong')
+            
+            
+            
 #==============================================================================
 def mdir(odir): 
     if not os.path.exists(odir): os.makedirs(odir)
@@ -715,7 +721,10 @@ if __name__ == "__main__":
 
 
     # setup output directories
+    
     odir00 = 'output/'
+    #os.system('rm -r '+odir00)
+    
     rdir0  = odir00 
     gxdir, stdir, hidir, hodir, exdir = [ mdir(rdir0 + a + '/') for a in ['geo_em', 'setup', 'datain', 'dataout', 'extract']]
 
