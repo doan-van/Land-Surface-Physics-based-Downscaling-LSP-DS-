@@ -710,47 +710,54 @@ def mdir(odir):
 if __name__ == "__main__":
 # global path:
     
-    era_link = 'download_era5/era5_hrldas/dbsh/'
-    hrldas_prog = 'hrldas_prog/'
+    # preparing link to necessary data 
+    era_link = 'download_era5/era5_hrldas/dbsh/'  # link to era5 data 
+    hrldas_prog = 'hrldas_prog/' # link to hrldas.exe and relevant files
+    geo_em_file = 'geo_em.d03.nc' # link to geo_em file
 
-    sdate, edate = '2013-01-01', '2013-01-05 01:00:00'
-    geo_em_file = 'geo_em.d03.nc'
-    
+
+    # setup output directories
     odir00 = 'output/'
-    
     rdir0  = odir00 
-    
-
-
     gxdir, stdir, hidir, hodir, exdir = [ mdir(rdir0 + a + '/') for a in ['geo_em', 'setup', 'datain', 'dataout', 'extract']]
 
+    # setup run
+    sdate, edate = '2013-01-01', '2013-01-05 01:00:00' # 
+    
 
     if 1:    
+        # step 1: extract necessary information from geo_em
         extract_geo_em(geo_em_file, gxdir)
+        # step 2:
+        # write setup file (this is similar to wrfinput in wrf)
         setupfile(era_link,gxdir, stdir, sdate)
         writesetup(gxdir, stdir, sdate, hidir, dom='3')
+        # step 3: 
+        # write boundary condition files (this is similar to wrfbdy)
         bdcon(era_link, gxdir, sdate, edate, hidir, dom='3')
             
-    
-                
+        
         rdir = mdir(hodir+'/') 
         hodir1 = mdir(hodir+'/dataout/') 
         exdir1 = mdir(exdir+'/') 
                     
         update = {}
-        namelist_link = hrldas_prog+'/examples/GLDAS/namelist.hrldas.GLDAS'
+        
         
         #update['khour'] = '0'
         #update['kday'] = '4'
         
         update['kday'] = str((pd.to_datetime(edate) - pd.to_datetime(sdate)).days)
         
-        
+        # step 4: copy necessary program to specified directory
         copyprog(hrldas_prog, rdir )
+        # step 5: modify namelist input accordingly
+        namelist_link = hrldas_prog+'/examples/GLDAS/namelist.hrldas.GLDAS'
         ll = writenamelist(namelist_link, sdate, edate, hidir, hodir1, rdir, update, dom='3')       
+        # step 6: run hrldas.exe
         os.system(' cd  '+rdir+'; ./hrldas.exe; cd -')    
 
-        
+        # extract temperature from output
         varnames = ['TEMP'][:]
         extract_hrldas(geo_em_file, hidir, hodir1, exdir1, sdate, edate, varnames, dom='3' )
     
